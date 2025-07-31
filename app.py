@@ -1,0 +1,311 @@
+import webview
+import os
+
+
+class Api:
+    def fechar(self):
+        webview.windows[0].destroy()
+
+    def minimizar(self):
+        webview.windows[0].minimize()
+
+    def mover(self, x, y):
+        webview.windows[0].move(x, y)
+
+
+html = """
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Calculadora</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <style>
+        /* Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            overflow: hidden !important;
+            width: 320px;
+            /* fixo para encaixar na janela */
+            height: 490px;
+            /* fixo para encaixar na janela */
+            background-color: #000;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+        }
+
+        /* Botões estilo Mac OS */
+        #barra-titulo {
+            width: 320px;
+            height: 35px;
+            background: #111;
+            -webkit-app-region: drag;
+            display: flex;
+            justify-content: flex-start;
+            /* alinhados à esquerda no mac */
+            align-items: center;
+            gap: 12px;
+            padding: 0 12px;
+        }
+
+        #barra-titulo button {
+            all: unset;
+            -webkit-app-region: no-drag;
+            cursor: pointer;
+            font-size: 32px;
+            /* maior */
+            line-height: 1;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+            transition: all 0.2s;
+        }
+
+        /* Efeito hover mais escuro */
+        #btn-fechar:hover {
+            color: #b13a31;
+        }
+
+        #btn-minimizar:hover {
+            color: #ce9719;
+        }
+
+        #btn-maximizar:hover {
+            color: #19862d;
+        }
+
+        /* Calculadora */
+        .calculadora {
+            width: 320px;
+            background: #000;
+            padding: 20px;
+            border-radius: 0 0 20px 20px;
+            flex-shrink: 0;
+            box-sizing: border-box;
+        }
+
+        .tela {
+            width: 100%;
+            height: 60px;
+            background-color: #222;
+            color: #0f0;
+            font-size: 2em;
+            text-align: right;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .botoes {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        button.calc-btn {
+            height: 60px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.5em;
+            cursor: pointer;
+            background-color: #222;
+            color: #0f0;
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        button.calc-btn.operador {
+            background-color: #116b32;
+            color: #fff;
+        }
+
+        button.calc-btn.igual {
+            background-color: #118c4f;
+            color: #fff;
+        }
+
+        button.calc-btn.limpar {
+            background-color: #555;
+            color: #ccc;
+        }
+
+        button.calc-btn:not(.operador):not(.igual):not(.limpar):hover {
+            background-color: #333;
+        }
+
+        button.calc-btn.operador:hover,
+        button.calc-btn.igual:hover {
+            background-color: #1ac865;
+        }
+
+        button.calc-btn.limpar:hover {
+            background-color: #777;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="barra-titulo">
+        <button id="btn-fechar" title="Fechar" style="color: #ff5f56;">●</button>
+        <button id="btn-minimizar" title="Minimizar" style="color: #ffbd2e;">●</button>
+        <button id="btn-maximizar" title="Maximizar" style="color: #27c93f;">●</button>
+    </div>
+
+    <div class="calculadora">
+        <div class="tela" id="tela"></div>
+        <div class="botoes">
+            <button onclick="limparTudo()" class="calc-btn limpar">C</button>
+            <button onclick="adicionar('(')" class="calc-btn">(</button>
+            <button onclick="adicionar(')')" class="calc-btn">)</button>
+            <button onclick="adicionar('/')" class="calc-btn operador">÷</button>
+
+            <button onclick="adicionar('7')" class="calc-btn">7</button>
+            <button onclick="adicionar('8')" class="calc-btn">8</button>
+            <button onclick="adicionar('9')" class="calc-btn">9</button>
+            <button onclick="adicionar('*')" class="calc-btn operador">×</button>
+
+            <button onclick="adicionar('4')" class="calc-btn">4</button>
+            <button onclick="adicionar('5')" class="calc-btn">5</button>
+            <button onclick="adicionar('6')" class="calc-btn">6</button>
+            <button onclick="adicionar('-')" class="calc-btn operador">−</button>
+
+            <button onclick="adicionar('1')" class="calc-btn">1</button>
+            <button onclick="adicionar('2')" class="calc-btn">2</button>
+            <button onclick="adicionar('3')" class="calc-btn">3</button>
+            <button onclick="adicionar('+')" class="calc-btn operador">+</button>
+
+            <button onclick="adicionar('0')" class="calc-btn">0</button>
+            <button onclick="adicionar('.')" class="calc-btn">.</button>
+            <button onclick="calcular()" class="calc-btn igual">=</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('btn-fechar').addEventListener('click', () => {
+            window.pywebview.api.fechar();
+        });
+
+        document.getElementById('btn-minimizar').addEventListener('click', () => {
+            window.pywebview.api.minimizar();
+        });
+
+        document.getElementById('btn-maximizar').addEventListener('click', () => {
+            window.pywebview.api.maximizar();
+        });
+    </script>
+
+
+    <script>
+        const tela = document.getElementById("tela");
+        let conta = "";
+        let pronto = false;
+
+        const simbolos = {
+            '*': '×',
+            '/': '÷',
+            '+': '+',
+            '-': '−'
+        };
+
+        function adicionar(valor) {
+            if (pronto) {
+                if (/[0-9.]/.test(valor)) {
+                    conta = "";
+                    tela.innerText = "";
+                }
+                pronto = false;
+            }
+
+            conta += valor;
+
+            if (valor in simbolos) {
+                tela.innerText += simbolos[valor];
+            } else {
+                tela.innerText += valor;
+            }
+        }
+
+        function limparTudo() {
+            conta = "";
+            tela.innerText = "";
+            pronto = false;
+        }
+
+        function calcular() {
+            try {
+                // Cuidado com eval, aqui simples
+                const resultado = eval(conta);
+                tela.innerText = resultado;
+                conta = resultado.toString();
+                pronto = true;
+            } catch {
+                tela.innerText = "Erro";
+                conta = "";
+                pronto = true;
+            }
+        }
+    </script>
+
+    <script>
+    let dragging = false;
+    let offset = { x: 0, y: 0 };
+
+    const barra = document.getElementById('barra-titulo');
+
+    barra.addEventListener('mousedown', e => {
+        dragging = true;
+        offset.x = e.clientX;
+        offset.y = e.clientY;
+    });
+
+    window.addEventListener('mousemove', e => {
+        if (dragging) {
+            const dx = e.screenX - offset.x;
+            const dy = e.screenY - offset.y;
+            window.pywebview.api.mover(dx, dy);
+        }
+    });
+
+    window.addEventListener('mouseup', () => {
+        dragging = false;
+    });
+</script>
+</body>
+
+</html>
+"""
+# Create the API instance
+api = Api()
+# Create the window
+window = webview.create_window(
+    "Calculadora",
+    html=html,
+    width=330,
+    height=530,
+    resizable=False,
+    frameless=True,
+    background_color="#000000",
+    js_api=api,
+)
+# Start the webview
+webview.start(gui="edgechromium")
