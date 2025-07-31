@@ -52,5 +52,4 @@
 ### Passos para rodar o projeto:
 - abrir o exe que ta na pasta `App` seu burro
 - Não Encher meu Saco no Discord Dizendo Que é Virus ( SENDO QUE É OPEN SOURCE ESSA PHA )
-  
-# --------------- Powered By DS Software ---------------
+- --------------- Powered By DS Software ---------------
